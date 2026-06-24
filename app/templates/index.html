@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>kernel.sim — OS Concepts Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ===================== LEFT RAIL ===================== -->
+  <nav class="rail" aria-label="Module navigation">
+    <div class="rail-brand">
+      <span class="brand-mark">⌁</span>
+      <div class="brand-text">
+        <span class="brand-name">kernel<span class="brand-dot">.</span>sim</span>
+        <span class="brand-sub">OS CONCEPTS CONSOLE</span>
+      </div>
+    </div>
+
+    <div class="rail-modules">
+      <button class="rail-btn active" data-module="cpu">
+        <span class="rail-idx">01</span>
+        <span class="rail-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="6" y="6" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+        <span class="rail-label">CPU Scheduling</span>
+      </button>
+      <button class="rail-btn" data-module="memory">
+        <span class="rail-idx">02</span>
+        <span class="rail-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="2.5" y="7" width="19" height="10" rx="1.2" stroke="currentColor" stroke-width="1.6"/><path d="M7 7v10M12 7v10M17 7v10" stroke="currentColor" stroke-width="1.4"/></svg>
+        </span>
+        <span class="rail-label">Memory Mgmt.</span>
+      </button>
+      <button class="rail-btn" data-module="vm">
+        <span class="rail-idx">03</span>
+        <span class="rail-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M3 12h4l2-7 4 14 2-7h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="rail-label">Virtual Memory</span>
+      </button>
+      <button class="rail-btn" data-module="disk">
+        <span class="rail-idx">04</span>
+        <span class="rail-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.4" fill="currentColor"/><path d="M12 3v4M12 17v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+        <span class="rail-label">Disk Scheduling</span>
+      </button>
+    </div>
+
+    <div class="rail-footer">
+      <div class="status-led" id="status-led">
+        <span class="led-dot"></span>
+        <span class="led-text">SIMULATOR READY</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===================== MAIN ===================== -->
+  <main class="main">
+
+    <!-- ---------- CPU MODULE ---------- -->
+    <section class="module active" id="module-cpu" data-module-panel="cpu">
+      <header class="module-head">
+        <div>
+          <p class="module-eyebrow">MODULE 01 / SCHEDULER</p>
+          <h1 class="module-title">CPU Scheduling</h1>
+          <p class="module-desc">Simulate process dispatch across FCFS, SJF, SRTF, Priority, and Round Robin. Compare waiting time, turnaround time, and response time on a shared timeline.</p>
+        </div>
+      </header>
+
+      <div class="console-grid">
+        <div class="panel input-panel">
+          <div class="panel-head"><span class="panel-title">Process Table</span><span class="panel-tag">INPUT</span></div>
+          <div class="panel-body">
+            <table class="editable-table" id="cpu-process-table">
+              <thead>
+                <tr><th>PID</th><th>Arrival</th><th>Burst</th><th>Priority</th><th></th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <button class="btn-ghost btn-add" id="cpu-add-row" type="button">+ Add process</button>
+
+            <div class="field-row">
+              <label class="field">
+                <span class="field-label">Time Quantum (Round Robin)</span>
+                <input type="number" id="cpu-quantum" min="1" value="2">
+              </label>
+            </div>
+
+            <div class="field">
+              <span class="field-label">Algorithms</span>
+              <div class="chip-group" id="cpu-algo-chips">
+                <label class="chip"><input type="checkbox" value="fcfs" checked><span>FCFS</span></label>
+                <label class="chip"><input type="checkbox" value="sjf_np"><span>SJF (NP)</span></label>
+                <label class="chip"><input type="checkbox" value="srtf"><span>SRTF</span></label>
+                <label class="chip"><input type="checkbox" value="priority_np"><span>Priority (NP)</span></label>
+                <label class="chip"><input type="checkbox" value="priority_p"><span>Priority (P)</span></label>
+                <label class="chip"><input type="checkbox" value="rr"><span>Round Robin</span></label>
+              </div>
+            </div>
+
+            <button class="btn-run" id="cpu-run">
+              <span>Run Simulation</span>
+              <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <p class="error-msg" id="cpu-error"></p>
+          </div>
+        </div>
+
+        <div class="panel output-panel" id="cpu-output">
+          <div class="empty-state">
+            <span class="empty-glyph">○</span>
+            <p>Configure your process table and run a simulation to see Gantt traces, metrics, and comparisons here.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- MEMORY MODULE ---------- -->
+    <section class="module" id="module-memory" data-module-panel="memory">
+      <header class="module-head">
+        <div>
+          <p class="module-eyebrow">MODULE 02 / ALLOCATOR</p>
+          <h1 class="module-title">Memory Management</h1>
+          <p class="module-desc">Contiguous allocation via First / Best / Worst Fit. Toggle compaction to watch fragmented blocks defragment in real time.</p>
+        </div>
+      </header>
+
+      <div class="console-grid">
+        <div class="panel input-panel">
+          <div class="panel-head"><span class="panel-title">Allocation Sequence</span><span class="panel-tag">INPUT</span></div>
+          <div class="panel-body">
+            <div class="field-row">
+              <label class="field">
+                <span class="field-label">Total Memory Size</span>
+                <input type="number" id="mem-total-size" min="1" value="200">
+              </label>
+              <label class="field toggle-field">
+                <span class="field-label">Compaction</span>
+                <span class="toggle">
+                  <input type="checkbox" id="mem-compaction">
+                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </span>
+              </label>
+            </div>
+
+            <table class="editable-table" id="mem-request-table">
+              <thead><tr><th>Op</th><th>PID</th><th>Size</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+            <button class="btn-ghost btn-add" id="mem-add-row" type="button">+ Add request</button>
+
+            <div class="field">
+              <span class="field-label">Strategies</span>
+              <div class="chip-group" id="mem-strategy-chips">
+                <label class="chip"><input type="checkbox" value="first_fit" checked><span>First Fit</span></label>
+                <label class="chip"><input type="checkbox" value="best_fit"><span>Best Fit</span></label>
+                <label class="chip"><input type="checkbox" value="worst_fit"><span>Worst Fit</span></label>
+              </div>
+            </div>
+
+            <button class="btn-run" id="mem-run">
+              <span>Run Simulation</span>
+              <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <p class="error-msg" id="mem-error"></p>
+          </div>
+        </div>
+
+        <div class="panel output-panel" id="mem-output">
+          <div class="empty-state">
+            <span class="empty-glyph">○</span>
+            <p>Build an allocation sequence (alloc / free) and run it to visualize the memory map step by step.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- VIRTUAL MEMORY MODULE ---------- -->
+    <section class="module" id="module-vm" data-module-panel="vm">
+      <header class="module-head">
+        <div>
+          <p class="module-eyebrow">MODULE 03 / PAGING</p>
+          <h1 class="module-title">Virtual Memory</h1>
+          <p class="module-desc">Page replacement via FIFO, LRU, and Optimal (Belady's). Track frame occupancy and fault rate across a reference string.</p>
+        </div>
+      </header>
+
+      <div class="console-grid">
+        <div class="panel input-panel">
+          <div class="panel-head"><span class="panel-title">Reference String</span><span class="panel-tag">INPUT</span></div>
+          <div class="panel-body">
+            <label class="field">
+              <span class="field-label">Page Reference String</span>
+              <input type="text" id="vm-reference" value="7 0 1 2 0 3 0 4 2 3 0 3 2 1 2 0 1 7 0 1" placeholder="e.g. 7 0 1 2 0 3 0 4">
+              <span class="field-hint">Space or comma separated page numbers</span>
+            </label>
+            <label class="field">
+              <span class="field-label">Number of Frames</span>
+              <input type="number" id="vm-frames" min="1" value="3">
+            </label>
+
+            <div class="field">
+              <span class="field-label">Algorithms</span>
+              <div class="chip-group" id="vm-algo-chips">
+                <label class="chip"><input type="checkbox" value="fifo" checked><span>FIFO</span></label>
+                <label class="chip"><input type="checkbox" value="lru"><span>LRU</span></label>
+                <label class="chip"><input type="checkbox" value="optimal"><span>Optimal</span></label>
+              </div>
+            </div>
+
+            <button class="btn-run" id="vm-run">
+              <span>Run Simulation</span>
+              <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <p class="error-msg" id="vm-error"></p>
+          </div>
+        </div>
+
+        <div class="panel output-panel" id="vm-output">
+          <div class="empty-state">
+            <span class="empty-glyph">○</span>
+            <p>Enter a reference string and frame count to visualize page faults and frame occupancy over time.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- DISK MODULE ---------- -->
+    <section class="module" id="module-disk" data-module-panel="disk">
+      <header class="module-head">
+        <div>
+          <p class="module-eyebrow">MODULE 04 / I/O</p>
+          <h1 class="module-title">Disk Scheduling</h1>
+          <p class="module-desc">Seek-order algorithms — FCFS, SSTF, SCAN, C-SCAN, LOOK, C-LOOK. Visualize head movement across cylinders and total seek distance.</p>
+        </div>
+      </header>
+
+      <div class="console-grid">
+        <div class="panel input-panel">
+          <div class="panel-head"><span class="panel-title">Disk Request Queue</span><span class="panel-tag">INPUT</span></div>
+          <div class="panel-body">
+            <label class="field">
+              <span class="field-label">Request Queue (cylinders)</span>
+              <input type="text" id="disk-requests" value="98 183 37 122 14 124 65 67" placeholder="e.g. 98 183 37 122 14">
+              <span class="field-hint">Space or comma separated cylinder numbers</span>
+            </label>
+            <div class="field-row">
+              <label class="field">
+                <span class="field-label">Initial Head Position</span>
+                <input type="number" id="disk-head" min="0" value="53">
+              </label>
+              <label class="field">
+                <span class="field-label">Disk Size (cylinders)</span>
+                <input type="number" id="disk-size" min="1" value="200">
+              </label>
+            </div>
+            <label class="field">
+              <span class="field-label">Scan Direction</span>
+              <div class="seg-control" id="disk-direction">
+                <button type="button" class="seg-btn active" data-val="right">Right (↑)</button>
+                <button type="button" class="seg-btn" data-val="left">Left (↓)</button>
+              </div>
+            </label>
+
+            <div class="field">
+              <span class="field-label">Algorithms</span>
+              <div class="chip-group" id="disk-algo-chips">
+                <label class="chip"><input type="checkbox" value="fcfs" checked><span>FCFS</span></label>
+                <label class="chip"><input type="checkbox" value="sstf"><span>SSTF</span></label>
+                <label class="chip"><input type="checkbox" value="scan"><span>SCAN</span></label>
+                <label class="chip"><input type="checkbox" value="cscan"><span>C-SCAN</span></label>
+                <label class="chip"><input type="checkbox" value="look"><span>LOOK</span></label>
+                <label class="chip"><input type="checkbox" value="clook"><span>C-LOOK</span></label>
+              </div>
+            </div>
+
+            <button class="btn-run" id="disk-run">
+              <span>Run Simulation</span>
+              <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <p class="error-msg" id="disk-error"></p>
+          </div>
+        </div>
+
+        <div class="panel output-panel" id="disk-output">
+          <div class="empty-state">
+            <span class="empty-glyph">○</span>
+            <p>Queue up cylinder requests and run to visualize head movement and total seek distance.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/cpu.js') }}"></script>
+<script src="{{ url_for('static', filename='js/memory.js') }}"></script>
+<script src="{{ url_for('static', filename='js/vm.js') }}"></script>
+<script src="{{ url_for('static', filename='js/disk.js') }}"></script>
+</body>
+</html>
